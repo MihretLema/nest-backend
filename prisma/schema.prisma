@@ -1,0 +1,381 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model admin {
+  admin_id                                   String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name                                  String           @db.VarChar(100)
+  email                                      String           @unique @db.VarChar(100)
+  phone_number                               String?          @db.VarChar(20)
+  password                                   String
+  role                                       admin_role_enum? @default(superadmin)
+  status                                     status_enum?     @default(active)
+  created_at                                 DateTime?        @default(now()) @db.Timestamp(6)
+  updated_at                                 DateTime?        @default(now()) @db.Timestamp(6)
+  admin_activity_admin_activity_adminToadmin admin_activity[] @relation("admin_activity_adminToadmin")
+}
+
+model admin_activity {
+  activity_id                       String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  admin                             String    @db.Uuid
+  activity_type                     String?   @db.VarChar(50)
+  action                            String    @db.VarChar(255)
+  description                       String?
+  ip_address                        String?   @db.VarChar(45)
+  user_agent                        String?
+  created_at                        DateTime? @default(now()) @db.Timestamp(6)
+  updated_at                        DateTime? @default(now()) @db.Timestamp(6)
+  admin_admin_activity_adminToadmin admin     @relation("admin_activity_adminToadmin", fields: [admin], references: [admin_id], onDelete: Cascade)
+}
+
+model advocator {
+  advocator_id                                                              String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name                                                                 String?               @db.VarChar
+  email                                                                     String?               @db.VarChar(199)
+  phone_number                                                              String?               @db.VarChar(100)
+  cretaed_at                                                                DateTime?             @default(dbgenerated("CURRENT_DATE")) @db.Date
+  updated_at                                                                DateTime?             @default(dbgenerated("CURRENT_DATE")) @db.Date
+  advocator_occupation                                                      String?               @db.Uuid
+  advocator_occupation_advocator_advocator_occupationToadvocator_occupation advocator_occupation? @relation("advocator_advocator_occupationToadvocator_occupation", fields: [advocator_occupation], references: [advocator_occupation_id], onDelete: Cascade)
+}
+
+model advocator_occupation {
+  advocator_occupation_id                                        String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  qualification_type                                             qualification_type?
+  years_of_experiance                                            Int?
+  linkedin_prpofile                                              String?
+  created_at                                                     DateTime?           @default(dbgenerated("CURRENT_DATE")) @db.Date
+  updated_at                                                     DateTime?           @default(dbgenerated("CURRENT_DATE")) @db.Date
+  advocator_advocator_advocator_occupationToadvocator_occupation advocator[]         @relation("advocator_advocator_occupationToadvocator_occupation")
+}
+
+model blog {
+  blog_id    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  writer_id  String    @db.Uuid
+  title      String    @db.VarChar(200)
+  content    String
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+  media      media[]
+}
+
+model blog_writer {
+  writer_id                      String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name                      String         @db.VarChar(100)
+  email                          String         @db.VarChar(150)
+  bio                            String?
+  media                          String?        @db.Uuid
+  created_at                     DateTime?      @default(now()) @db.Timestamp(6)
+  updated_at                     DateTime?      @default(now()) @db.Timestamp(6)
+  media_blog_writer_mediaTomedia media?         @relation("blog_writer_mediaTomedia", fields: [media], references: [id], onDelete: Cascade)
+  social_media                   social_media[] @ignore
+}
+
+model donation {
+  donation_id    String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name      String        @db.VarChar
+  email          String        @db.VarChar
+  phone_number   String?       @db.VarChar
+  amount         Decimal?      @db.Decimal
+  payment_method donationtype?
+  created_at     DateTime?     @default(dbgenerated("CURRENT_DATE")) @db.Date
+  updated_at     DateTime?     @default(dbgenerated("CURRENT_DATE")) @db.Date
+}
+
+model event {
+  event_id                                                  String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_name                                                String?           @db.VarChar(200)
+  description                                               String?
+  venue_name                                                String?
+  map_link                                                  String?
+  signup_link                                               String?
+  created_at                                                DateTime?         @default(dbgenerated("CURRENT_DATE")) @db.Date
+  updated_at                                                DateTime?         @default(dbgenerated("CURRENT_DATE")) @db.Date
+  event_attendance                                          String?           @db.Uuid
+  event_attendance_event_event_attendanceToevent_attendance event_attendance? @relation("event_event_attendanceToevent_attendance", fields: [event_attendance], references: [event_attendance_id], onDelete: Cascade)
+}
+
+model event_attendance {
+  event_attendance_id                            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  check_in_time                                  DateTime? @default(now()) @db.Time(6)
+  check_out_time                                 DateTime? @default(now()) @db.Time(6)
+  created_at                                     DateTime? @default(dbgenerated("CURRENT_DATE")) @db.Date
+  updated_at                                     DateTime? @default(dbgenerated("CURRENT_DATE")) @db.Date
+  event_event_event_attendanceToevent_attendance event[]   @relation("event_event_attendanceToevent_attendance")
+}
+
+model job {
+  job_id        String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title         String          @db.VarChar(200)
+  description   String
+  location      String?         @db.VarChar(200)
+  job_type      String?         @db.VarChar(50)
+  status        String?         @default("open") @db.VarChar(50)
+  closing_date  DateTime?       @db.Timestamp(6)
+  created_at    DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?       @default(now()) @db.Timestamp(6)
+  job_applicant job_applicant[]
+}
+
+model job_applicant {
+  applicant_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_id       String    @db.Uuid
+  full_name    String    @db.VarChar(150)
+  email        String    @db.VarChar(150)
+  phone        String?   @db.VarChar(50)
+  resume_path  String?
+  cover_letter String?
+  applied_at   DateTime? @default(now()) @db.Timestamp(6)
+  updated_at   DateTime? @default(now()) @db.Timestamp(6)
+  job          job       @relation(fields: [job_id], references: [job_id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model media {
+  id                                   String        @id @default(dbgenerated("gen_random_uuid()")) @map("_id") @db.Uuid
+  file_name                            String?       @db.VarChar(200)
+  file_path                            String?
+  file_type                            filetype?
+  created_at                           DateTime?     @default(dbgenerated("CURRENT_DATE")) @db.Date
+  updated_at                           DateTime?     @default(dbgenerated("CURRENT_DATE")) @db.Date
+  with_event                           String?       @db.Uuid
+  blog_image                           String?       @db.Uuid
+  blog_writer_blog_writer_mediaTomedia blog_writer[] @relation("blog_writer_mediaTomedia")
+  blog                                 blog?         @relation(fields: [blog_image], references: [blog_id], onDelete: Cascade)
+}
+
+model membership {
+  member_id                                                            String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  membership_address                                                   String?             @db.Uuid
+  full_name                                                            String              @db.VarChar(100)
+  email                                                                String              @db.VarChar(100)
+  phone_number                                                         String              @db.VarChar(20)
+  membership_type                                                      membership_enum?    @default(gold)
+  status                                                               status_enum?        @default(active)
+  amount                                                               Int?                @default(0)
+  last_payment                                                         DateTime?           @db.Date
+  membership_payment                                                   payment_enum?       @default(monthly)
+  reminder_count                                                       Int?                @default(0)
+  created_at                                                           DateTime?           @default(dbgenerated("CURRENT_DATE")) @db.Date
+  updated_at                                                           DateTime?           @default(dbgenerated("CURRENT_DATE")) @db.Date
+  membership_address_membership_membership_addressTomembership_address membership_address? @relation("membership_membership_addressTomembership_address", fields: [membership_address], references: [memberaddress_id], onDelete: Cascade)
+}
+
+model membership_address {
+  memberaddress_id                                             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  adress                                                       String?      @db.VarChar
+  country                                                      String
+  city                                                         String
+  street_adress                                                String?
+  postal_code                                                  String?      @db.VarChar
+  created_at                                                   DateTime?    @default(dbgenerated("CURRENT_DATE")) @db.Date
+  updated_at                                                   DateTime?    @default(dbgenerated("CURRENT_DATE")) @db.Date
+  membership_membership_membership_addressTomembership_address membership[] @relation("membership_membership_addressTomembership_address")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model partnership {
+  partnership_id    String    @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  organization_name String?   @db.VarChar
+  contact_person    String?   @db.VarChar
+  email             String?   @db.VarChar
+  phone             String?   @db.VarChar
+  description       String?
+  created_at        DateTime? @default(dbgenerated("CURRENT_DATE")) @db.Date
+  updated_at        DateTime? @default(dbgenerated("CURRENT_DATE")) @db.Date
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model social_media {
+  social_media_id   String?      @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  social_media_name String?
+  social_media_link String?
+  writer_id         String?      @db.Uuid
+  created_at        DateTime?    @default(dbgenerated("CURRENT_DATE")) @db.Date
+  updated_at        DateTime?    @default(dbgenerated("CURRENT_DATE")) @db.Date
+  blog_writer       blog_writer? @relation(fields: [writer_id], references: [writer_id], onDelete: Cascade)
+
+  @@ignore
+}
+
+model subscribers {
+  subscriber_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name     String    @db.VarChar
+  email         String    @db.VarChar
+  created_at    DateTime? @default(dbgenerated("CURRENT_DATE")) @db.Date
+  updated_at    DateTime? @default(dbgenerated("CURRENT_DATE")) @db.Date
+}
+
+model victim {
+  victim_id                                               String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  full_name                                               String           @db.VarChar(150)
+  gender                                                  gen?
+  notes                                                   String?
+  victim_adress                                           String?          @db.Uuid
+  victim_case                                             String?          @db.Uuid
+  victim_document                                         String?          @db.Uuid
+  created_at                                              DateTime?        @default(now()) @db.Timestamp(6)
+  updated_at                                              DateTime?        @default(now()) @db.Timestamp(6)
+  victim_address                                          victim_address?  @relation(fields: [victim_adress], references: [address_id], onDelete: Cascade)
+  victim_case_victim_victim_caseTovictim_case             victim_case?     @relation("victim_victim_caseTovictim_case", fields: [victim_case], references: [case_id], onDelete: Cascade)
+  victim_document_victim_victim_documentTovictim_document victim_document? @relation("victim_victim_documentTovictim_document", fields: [victim_document], references: [document_id], onDelete: Cascade)
+}
+
+model victim_address {
+  address_id String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  victim_id  String    @db.Uuid
+  phone      String?   @db.VarChar(25)
+  email      String?   @db.VarChar(100)
+  country    String?   @default("Ethiopia") @db.VarChar(100)
+  region     String?   @db.VarChar(100)
+  sub_city   String?   @db.VarChar(100)
+  woreda     String?   @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.Timestamp(6)
+  updated_at DateTime? @default(now()) @db.Timestamp(6)
+  victim     victim[]
+}
+
+model victim_case {
+  case_id                                String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  description                            String?
+  accident_level                         accident_level? @default(medium)
+  hospital_treated                       Boolean?        @default(false)
+  accident_year                          Int?
+  created_at                             DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at                             DateTime?       @default(now()) @db.Timestamp(6)
+  victim_victim_victim_caseTovictim_case victim[]        @relation("victim_victim_caseTovictim_case")
+}
+
+model victim_document {
+  document_id                                    String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  date_of_birth                                  DateTime?    @db.Date
+  nationality                                    String?      @default("Ethiopia") @db.VarChar(100)
+  occupation                                     String?      @db.VarChar(100)
+  education_level                                String?      @db.VarChar(100)
+  number_of_family                               Int?
+  emergency_contact_name                         String?      @db.VarChar(150)
+  emergency_contact_phone                        String?      @db.VarChar(25)
+  emergency_contact_relationship                 String?      @db.VarChar(100)
+  created_at                                     DateTime?    @default(dbgenerated("CURRENT_DATE")) @db.Date
+  updated_at                                     DateTime?    @default(dbgenerated("CURRENT_DATE")) @db.Date
+  marital_status                                 martialtype?
+  victim_victim_victim_documentTovictim_document victim[]     @relation("victim_victim_documentTovictim_document")
+}
+
+model volunteer {
+  volunteer_id                                                              String                  @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  full_name                                                                 String?                 @db.VarChar(100)
+  email                                                                     String?                 @db.VarChar(150)
+  phone                                                                     String?                 @db.VarChar(20)
+  created_at                                                                DateTime?               @default(now()) @db.Timestamp(6)
+  updated_at                                                                DateTime?               @default(now()) @db.Timestamp(6)
+  volunteer_occupation                                                      String?                 @db.Uuid
+  volunteer_occupation_volunteer_volunteer_occupationTovolunteer_occupation volunteer_occupation?   @relation("volunteer_volunteer_occupationTovolunteer_occupation", fields: [volunteer_occupation], references: [occupation_id], onDelete: Cascade)
+  volunteer_certificate_volunteer_certificate_volunteerTovolunteer          volunteer_certificate[] @relation("volunteer_certificate_volunteerTovolunteer")
+}
+
+model volunteer_certificate {
+  certificate_id                                       String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  volunteer                                            String?    @db.Uuid
+  file_path                                            String
+  description                                          String?
+  created_at                                           DateTime?  @default(now()) @db.Timestamp(6)
+  updated_at                                           DateTime?  @default(now()) @db.Timestamp(6)
+  volunteer_volunteer_certificate_volunteerTovolunteer volunteer? @relation("volunteer_certificate_volunteerTovolunteer", fields: [volunteer], references: [volunteer_id], onDelete: Cascade)
+}
+
+model volunteer_occupation {
+  occupation_id                                                  String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  skill_name                                                     String?     @db.VarChar(150)
+  area_of_interest                                               String?     @db.VarChar(100)
+  description                                                    String?
+  created_at                                                     DateTime?   @default(now()) @db.Timestamp(6)
+  updated_at                                                     DateTime?   @default(now()) @db.Timestamp(6)
+  volunteer_volunteer_volunteer_occupationTovolunteer_occupation volunteer[] @relation("volunteer_volunteer_occupationTovolunteer_occupation")
+}
+
+enum accident_level {
+  low
+  medium
+  high
+}
+
+enum admin_role_enum {
+  superadmin
+  manager
+  staff
+}
+
+enum case_status_enum {
+  open
+  closed
+  pending
+  referred
+}
+
+enum donationtype {
+  telebirr
+  mobile_banking @map("mobile banking")
+  cash
+}
+
+enum filetype {
+  imagevideoaudiodocumentwebarchiveother
+}
+
+enum gen {
+  FEMALE
+  MALE
+}
+
+enum job_status_enum {
+  open
+  closed
+  filled
+}
+
+enum job_type_enum {
+  Full_time  @map("Full-time")
+  Part_time  @map("Part-time")
+  Internship
+}
+
+enum martialtype {
+  married
+  single
+  divorced
+  widow
+  separated
+}
+
+enum membership_enum {
+  gold
+  silver
+  platinum
+}
+
+enum payment_enum {
+  monthly
+  yearly
+  quarterly
+}
+
+enum qualification_type {
+  Diploma
+  Degree
+  Masters
+  PhD
+}
+
+enum status_enum {
+  active
+  inactive
+  suspended
+}
